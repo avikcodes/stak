@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --background: #f6f2ea;
+  --foreground: #121212;
+  --muted: #6f665c;
+  --surface: rgba(255, 255, 255, 0.72);
+  --border: rgba(18, 18, 18, 0.08);
+  --accent: #0f766e;
+  --ring: rgba(15, 118, 110, 0.36);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0b0f17;
+  --foreground: #f5f7fb;
+  --muted: #9aa4b2;
+  --surface: rgba(15, 19, 28, 0.72);
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #5eead4;
+  --ring: rgba(94, 234, 212, 0.42);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(15, 118, 110, 0.1), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(94, 234, 212, 0.08), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, white) 0%, var(--background) 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 240ms ease, color 240ms ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
