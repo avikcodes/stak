@@ -9,24 +9,24 @@ import {
   Layers3,
   Menu,
   Plus,
-  Search,
   Settings2,
   Clock3,
 } from "lucide-react";
 import { Card } from "@/components/ui";
+import { signOut } from "@/features/auth/auth";
+import { useAuthStore, useStackUsage } from "@/store";
 import { cn } from "@/lib/utils";
 
 type NavItem = Readonly<{
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  badge?: string;
 }>;
 
 const primaryNav: NavItem[] = [
   { href: "/dashboard", label: "New Stack", icon: Plus },
   { href: "/queue", label: "Queue", icon: Layers3 },
-  { href: "/history", label: "History", icon: Clock3, badge: "Pro" },
+  { href: "/history", label: "History", icon: Clock3 },
   { href: "/settings", label: "Settings", icon: Settings2 },
 ];
 
@@ -57,11 +57,6 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
         )}
       />
       <span className="flex-1">{item.label}</span>
-      {item.badge ? (
-        <span className="rounded-full bg-[rgba(250,204,21,0.22)] px-2 py-0.5 text-[10px] font-semibold text-[#a16207]">
-          {item.badge}
-        </span>
-      ) : null}
     </button>
   );
 }
@@ -72,7 +67,11 @@ export function DashboardShell({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const resetAuth = useAuthStore((state) => state.resetAuth);
+  const { usedStacks, totalLimit } = useStackUsage();
 
   const currentTitle = useMemo(() => {
     if (pathname === "/queue") return "Queue";
@@ -80,6 +79,25 @@ export function DashboardShell({
     if (pathname === "/settings") return "Settings";
     return "New Stack";
   }, [pathname]);
+
+  const userLabel = user?.email ?? "Account";
+  const userInitials = useMemo(() => {
+    const source = user?.email ?? "A";
+    return source
+      .split("@")[0]
+      .split(/[._-]/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("")
+      .slice(0, 2) || "A";
+  }, [user?.email]);
+
+  async function handleLogout() {
+    await signOut();
+    resetAuth();
+    router.push("/login");
+  }
 
   return (
     <div className="min-h-[calc(100vh-0px)] bg-[#f5f3ee] text-[var(--foreground)] dark:bg-[#0a0d14]">
@@ -138,44 +156,46 @@ export function DashboardShell({
             </Card>
           </div>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <div className="relative flex-1">
-              <div className="flex h-12 max-w-[560px] items-center gap-3 rounded-full border border-[var(--border)] bg-[color:rgba(255,255,255,0.9)] px-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:bg-[color:rgba(15,19,28,0.8)]">
-                <Search className="h-4 w-4 text-[var(--muted)]" />
-                <input
-                  aria-label="Search or type a command"
-                  placeholder="Search or type a command"
-                  className="w-full bg-transparent text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none"
-                />
-              </div>
-            </div>
+          <div className="hidden items-center justify-end gap-3 lg:flex">
             <div className="flex items-center gap-2">
-              <div className="rounded-full border border-[var(--border)] bg-white px-3 py-2 text-xs font-medium text-[var(--muted)] shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
-                2/3 stacks used
-              </div>
-              <div className="rounded-full bg-[rgba(15,118,110,0.1)] px-3 py-2 text-xs font-semibold text-[var(--accent)]">
-                Free
+              <div className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--muted)] shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+                Usage: {usedStacks} / {totalLimit} stacks
               </div>
               <Link
                 href="/history"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent text-[var(--muted)] transition hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--muted)] transition hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
               >
                 <Bell className="h-4 w-4" />
               </Link>
               <details className="relative">
                 <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-[var(--border)] bg-white px-2 py-1.5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#dbeafe,#bae6fd)] text-xs font-semibold text-[#0f172a]">
-                    JD
+                    {userInitials}
                   </span>
                   <ChevronDown className="h-4 w-4 text-[var(--muted)]" />
                 </summary>
                 <div className="absolute right-0 top-[calc(100%+10px)] z-10 w-56 rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-2 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+                  <div className="flex items-center gap-3 px-3 py-2">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,#dbeafe,#bae6fd)] text-xs font-semibold text-[#0f172a]">
+                      {userInitials}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-[var(--foreground)]">
+                        {userLabel}
+                      </p>
+                      <p className="text-xs text-[var(--muted)]">Workspace menu</p>
+                    </div>
+                  </div>
                   <Link className="block rounded-2xl px-3 py-2 text-sm hover:bg-white" href="/settings">
-                    Account settings
+                    Settings
                   </Link>
-                  <Link className="block rounded-2xl px-3 py-2 text-sm hover:bg-white" href="/login">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="block w-full rounded-2xl px-3 py-2 text-left text-sm hover:bg-white"
+                  >
                     Sign out
-                  </Link>
+                  </button>
                 </div>
               </details>
             </div>

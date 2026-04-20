@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { SiteHeader } from "./site-header";
+import { AuthBootstrap } from "./auth-bootstrap";
 import { cn } from "@/lib/utils";
 
 const dashboardRoutes = new Set(["/dashboard", "/queue", "/history", "/settings"]);
@@ -25,6 +26,7 @@ export function AppShell({
           "bg-[linear-gradient(180deg,var(--background)_0%,color-mix(in_srgb,var(--background)_88%,white)_100%)] text-[var(--foreground)]"
       )}
     >
+      <AuthBootstrap />
       {showMarketingChrome ? <SiteHeader /> : null}
       {children}
     </div>

@@ -1,45 +1,76 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui";
+import Link from "next/link";
+import { signIn } from "@/features/auth/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      setErrorMessage(error.message);
+      setIsSubmitting(false);
+      return;
+    }
+
+    router.push("/dashboard");
+  }
 
   return (
-    <section className="w-full max-w-3xl space-y-6">
-      <div className="space-y-3">
-        <p className="text-xs font-medium uppercase tracking-[0.28em] text-[var(--accent)]">
-          Authentication
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-100">
+      <div className="bg-white p-8 rounded-xl shadow w-full max-w-md">
+        <h2 className="text-2xl font-semibold mb-6 text-center">
           Login
-        </h1>
-        <p className="max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
-          Placeholder login route for Stak.
+        </h2>
+
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full mb-4 p-3 border rounded"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full mb-4 p-3 border rounded"
+            required
+          />
+
+          {errorMessage ? (
+            <p className="text-sm text-red-600 mb-4">{errorMessage}</p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition"
+          >
+            Sign in
+          </button>
+        </form>
+
+        <p className="mt-4 text-sm text-center">
+          Don't have an account?
+          <Link href="/signup" className="underline ml-1">Sign up</Link>
         </p>
       </div>
-      <Card>
-        <div className="space-y-4">
-          <p className="text-sm font-medium text-[var(--foreground)]">Routes</p>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/signup")}
-              className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[var(--accent)]"
-            >
-              Create account
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[var(--accent)]"
-            >
-              Dashboard
-            </button>
-          </div>
-        </div>
-      </Card>
-    </section>
+    </div>
   );
 }
