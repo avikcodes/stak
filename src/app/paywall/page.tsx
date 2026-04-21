@@ -43,11 +43,12 @@ export default function Paywall() {
         </div>
 
         <button
-          onClick={handleUpgrade}
-          disabled={isLoading}
-          className="w-full bg-black text-white py-3 rounded-lg hover:opacity-90 disabled:opacity-50"
+          onClick={() => {
+            window.location.href = "https://test.checkout.dodopayments.com/buy/pdt_0NdBvPRjD1w38oRX9i5mA?quantity=1";
+          }}
+          className="w-full bg-black text-white py-3 rounded-lg hover:opacity-90"
         >
-          {isLoading ? "Loading..." : "Upgrade Now"}
+          Upgrade Now
         </button>
       </div>
     </div>
