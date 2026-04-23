@@ -1067,7 +1067,9 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-[22px] bg-white/80 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)] dark:bg-white/5">
                 <p className="text-xs text-[var(--muted)]">Stacks used</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight">{stacks.length}/3</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight">
+                  {stacks.length}/{totalLimit}
+                </p>
               </div>
               <div className="rounded-[22px] bg-white/80 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)] dark:bg-white/5">
                 <p className="text-xs text-[var(--muted)]">Queue depth</p>

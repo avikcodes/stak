@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui";
 import { signOut } from "@/features/auth/auth";
-import { useAuthStore, useStackUsage } from "@/store";
+import { useAuthStore } from "@/store";
 import { cn } from "@/lib/utils";
 
 type NavItem = Readonly<{
@@ -71,8 +71,6 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const resetAuth = useAuthStore((state) => state.resetAuth);
-  const { usedStacks, totalLimit } = useStackUsage();
-
   const currentTitle = useMemo(() => {
     if (pathname === "/queue") return "Queue";
     if (pathname === "/history") return "History";
@@ -158,9 +156,6 @@ export function DashboardShell({
 
           <div className="hidden items-center justify-end gap-3 lg:flex">
             <div className="flex items-center gap-2">
-              <div className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--muted)] shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
-                Usage: {usedStacks} / {totalLimit} stacks
-              </div>
               <Link
                 href="/history"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[var(--muted)] transition hover:border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
