@@ -29,30 +29,36 @@ export async function AuthGuard({ children }: AuthGuardProps) {
     redirect("/login");
   }
 
-  console.log("USER ID:", user.id);
+  // 🔥 DEBUG LOGS
+  console.log("AUTH USER ID:", user.id);
 
+  // 🔥 SAFE QUERY (no .single)
   const { data, error } = await supabase
     .from("users")
-    .select("plan")
-    .eq("id", user.id)
-    .single();
+    .select("*")
+    .eq("id", user.id);
 
   if (error) {
     console.error("PLAN LOOKUP ERROR:", error);
   }
 
-  const plan = data?.plan;
+  console.log("DB DATA:", data);
 
-  console.log("PLAN:", plan);
+  const plan = data?.[0]?.plan;
 
-  // 🔥 FIXED LOGIC
+  console.log("FINAL PLAN:", plan);
+
+  // 🔥 HANDLE STATES PROPERLY
   if (!plan) {
+    console.log("PLAN NOT FOUND → showing loading");
     return <div>Loading...</div>;
   }
 
   if (plan === "pro") {
+    console.log("ACCESS GRANTED");
     return <>{children}</>;
   }
 
+  console.log("ACCESS DENIED → redirecting");
   redirect("/paywall");
 }
