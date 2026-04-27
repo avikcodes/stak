@@ -1,27 +1,33 @@
+import { createClient } from "@supabase/supabase-js";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
     console.log("WEBHOOK:", body.type);
 
-    // ✅ Give access on subscription active
     if (body.type === "subscription.active") {
       console.log("SUB ACTIVE HIT");
 
-      // ⚠️ TEMP: hardcode your user (we’ll fix mapping later)
+      // ⚠️ TEMP: your user id
       const USER_ID = "f0ac0e19-91ec-41fd-9b76-cf528f693a4a";
 
-      // 👉 update your DB (replace with your DB code)
-      await fetch("http://localhost:3000/api/debug-upgrade", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: USER_ID,
-          plan: "pro",
-        }),
-      });
+      // ✅ create supabase client
+      const supabase = createClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      // ✅ update user plan
+      const { error } = await supabase
+        .from("users")
+        .update({ plan: "pro" })
+        .eq("id", USER_ID);
+
+      if (error) {
+        console.error("DB ERROR:", error);
+        throw error;
+      }
 
       console.log("USER UPGRADED");
     }
