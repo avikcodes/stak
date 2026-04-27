@@ -1,36 +1,52 @@
-"use client";
-
-import { useEffect, type ReactNode } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuthStore } from "@/store/auth.store";
-import { useUserPlanStore, isSubscribed } from "@/store/user-plan.store";
+import type { ReactNode } from "react";
+import { cookies } from "next/headers";
+import { connection } from "next/server";
+import { redirect } from "next/navigation";
+import { SUPABASE_ACCESS_TOKEN_COOKIE_NAME } from "@/lib/auth";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 type AuthGuardProps = {
   children: ReactNode;
 };
 
-export function AuthGuard({ children }: AuthGuardProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const status = useAuthStore((state) => state.status);
-  const plan = useUserPlanStore((state) => state.plan);
+export async function AuthGuard({ children }: AuthGuardProps) {
+  await connection();
 
-  useEffect(() => {
-    if (status === "loading") return;
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get(SUPABASE_ACCESS_TOKEN_COOKIE_NAME)?.value;
 
-    if (status !== "authenticated") {
-      router.replace("/login");
-      return;
-    }
+  if (!accessToken) {
+    redirect("/login");
+  }
 
-    if (plan && !isSubscribed(plan)) {
-      router.replace("/paywall");
-    }
-  }, [status, plan, pathname, router]);
+  const supabase = createServerSupabaseClient(accessToken);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser(accessToken);
 
-  if (status === "loading") return null;
-  if (status !== "authenticated") return null;
-  if (plan && !isSubscribed(plan)) return null;
+  if (!user) {
+    redirect("/login");
+  }
+
+  console.log("USER ID:", user.id);
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("plan")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("PLAN LOOKUP ERROR:", error);
+  }
+
+  const plan = data?.plan ?? "free";
+
+  console.log("PLAN:", plan);
+
+  if (plan !== "pro") {
+    redirect("/paywall");
+  }
 
   return <>{children}</>;
 }

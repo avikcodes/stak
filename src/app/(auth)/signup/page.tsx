@@ -17,7 +17,7 @@ export default function SignupPage() {
     setIsSubmitting(true);
     setErrorMessage("");
 
-    const { error } = await signUp(email, password);
+    const { error, session } = await signUp(email, password);
 
     if (error) {
       setErrorMessage(error.message);
@@ -25,7 +25,17 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/paywall");
+    if (session?.access_token) {
+      await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ accessToken: session.access_token }),
+      });
+    }
+
+    router.push("/dashboard");
   }
 
   return (
