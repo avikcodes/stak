@@ -20,6 +20,7 @@ export async function AuthGuard({ children }: AuthGuardProps) {
   }
 
   const supabase = createServerSupabaseClient(accessToken);
+
   const {
     data: { user },
   } = await supabase.auth.getUser(accessToken);
@@ -40,13 +41,18 @@ export async function AuthGuard({ children }: AuthGuardProps) {
     console.error("PLAN LOOKUP ERROR:", error);
   }
 
-  const plan = data?.plan ?? "free";
+  const plan = data?.plan;
 
   console.log("PLAN:", plan);
 
-  if (plan !== "pro") {
-    redirect("/paywall");
+  // 🔥 FIXED LOGIC
+  if (!plan) {
+    return <div>Loading...</div>;
   }
 
-  return <>{children}</>;
+  if (plan === "pro") {
+    return <>{children}</>;
+  }
+
+  redirect("/paywall");
 }
