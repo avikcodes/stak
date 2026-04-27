@@ -13,7 +13,8 @@ export async function AuthGuard({ children }: AuthGuardProps) {
   await connection();
 
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get(SUPABASE_ACCESS_TOKEN_COOKIE_NAME)?.value;
+  const accessToken =
+    cookieStore.get(SUPABASE_ACCESS_TOKEN_COOKIE_NAME)?.value;
 
   if (!accessToken) {
     redirect("/login");
@@ -29,29 +30,31 @@ export async function AuthGuard({ children }: AuthGuardProps) {
     redirect("/login");
   }
 
-  // 🔥 DEBUG LOGS
+  // ✅ DEBUG
   console.log("AUTH USER ID:", user.id);
 
-  // 🔥 SAFE QUERY (no .single)
+  // ✅ FIXED QUERY (clean + reliable)
   const { data, error } = await supabase
     .from("users")
-    .select("*")
-    .eq("id", user.id);
+    .select("plan")
+    .eq("id", user.id)
+    .maybeSingle();
 
   if (error) {
-    console.error("PLAN LOOKUP ERROR:", error);
+    console.error("DB ERROR:", error);
+    redirect("/paywall");
   }
 
   console.log("DB DATA:", data);
 
-  const plan = data?.[0]?.plan;
+  const plan = data?.plan;
 
   console.log("FINAL PLAN:", plan);
 
-  // 🔥 HANDLE STATES PROPERLY
+  // ❗ IMPORTANT: if no row exists → treat as FREE user
   if (!plan) {
-    console.log("PLAN NOT FOUND → showing loading");
-    return <div>Loading...</div>;
+    console.log("NO PLAN → redirecting to paywall");
+    redirect("/paywall");
   }
 
   if (plan === "pro") {
@@ -59,6 +62,6 @@ export async function AuthGuard({ children }: AuthGuardProps) {
     return <>{children}</>;
   }
 
-  console.log("ACCESS DENIED → redirecting");
+  console.log("NOT PRO → redirecting");
   redirect("/paywall");
 }
