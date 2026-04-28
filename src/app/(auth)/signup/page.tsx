@@ -25,6 +25,7 @@ export default function SignupPage() {
       return;
     }
 
+    // ✅ SAVE SESSION (existing logic)
     if (session?.access_token) {
       await fetch("/api/auth/session", {
         method: "POST",
@@ -33,6 +34,29 @@ export default function SignupPage() {
         },
         body: JSON.stringify({ accessToken: session.access_token }),
       });
+    }
+
+    // 🔥 NEW: CREATE USER IN DB
+    try {
+      const userRes = await fetch("/api/auth/me", {
+        method: "GET",
+      });
+
+      const userData = await userRes.json();
+
+      if (userData?.user?.id) {
+        await fetch("/api/create-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: userData.user.id,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("CREATE USER ERROR:", err);
     }
 
     router.push("/dashboard");
@@ -78,7 +102,9 @@ export default function SignupPage() {
 
         <p className="mt-4 text-sm text-center">
           Already have an account?
-          <Link href="/login" className="underline ml-1">Login</Link>
+          <Link href="/login" className="underline ml-1">
+            Login
+          </Link>
         </p>
       </div>
     </div>
