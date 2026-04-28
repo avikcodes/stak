@@ -17,7 +17,7 @@ export default function SignupPage() {
     setIsSubmitting(true);
     setErrorMessage("");
 
-    const { error, session } = await signUp(email, password);
+    const { error, session, user } = await signUp(email, password);
 
     if (error) {
       setErrorMessage(error.message);
@@ -25,7 +25,6 @@ export default function SignupPage() {
       return;
     }
 
-    // ✅ SAVE SESSION (existing logic)
     if (session?.access_token) {
       await fetch("/api/auth/session", {
         method: "POST",
@@ -36,27 +35,16 @@ export default function SignupPage() {
       });
     }
 
-    // 🔥 NEW: CREATE USER IN DB
-    try {
-      const userRes = await fetch("/api/auth/me", {
-        method: "GET",
+    if (user?.id) {
+      await fetch("/api/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+        }),
       });
-
-      const userData = await userRes.json();
-
-      if (userData?.user?.id) {
-        await fetch("/api/create-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: userData.user.id,
-          }),
-        });
-      }
-    } catch (err) {
-      console.error("CREATE USER ERROR:", err);
     }
 
     router.push("/dashboard");

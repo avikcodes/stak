@@ -5,12 +5,13 @@ export async function POST(req: Request) {
   try {
     const { userId } = await req.json();
 
+    console.log("CREATE USER HIT:", userId);
+
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // check if exists
     const { data: existing } = await supabase
       .from("users")
       .select("id")
@@ -18,10 +19,9 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (existing) {
-      return NextResponse.json({ message: "User already exists" });
+      return NextResponse.json({ success: true }, { status: 200 });
     }
 
-    // insert new user
     const { error } = await supabase.from("users").insert({
       id: userId,
       plan: "free",
@@ -32,9 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "DB error" }, { status: 500 });
     }
 
-    console.log("USER CREATED:", userId);
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
     console.error("CREATE USER ERROR:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
