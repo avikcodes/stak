@@ -44,7 +44,7 @@ export default function Paywall() {
 
         <button
           onClick={() => {
-            window.location.href = "https://test.checkout.dodopayments.com/buy/pdt_0NdBvPRjD1w38oRX9i5mA?quantity=1";
+            window.location.href = "https://checkout.dodopayments.com/buy/pdt_0NdejxwmeNMSaig2J5F8L?quantity=1";
           }}
           className="w-full bg-black text-white py-3 rounded-lg hover:opacity-90"
         >
